@@ -19,20 +19,34 @@ class MultiHeadAttention(nn.Module):
         self.linears = clones(nn.Linear(d_model, d_model), 4)
         self.attn = None
         self.dropout = nn.Dropout(p=dropout)
-        self.conv1d = nn.Conv1d(64, 64, 3, 1, 1)
+        self.conv1d7 = nn.Conv1d(7, 7, 3, 1, 1)
+        self.conv1d12 = nn.Conv1d(12, 12, 3, 1, 1)
 
 
-    def convo(self,node):
+    def convo7(self,node):
         conv1=[]
-        conv1.append(self.conv1d(node[0]+node[1]))
-        conv1.append(self.conv1d(node[0]+node[1]+node[2]))
-        conv1.append(self.conv1d(node[2]+node[1]+node[3]))
-        conv1.append(self.conv1d(node[3]+node[2]+node[4]))
-        conv1.append(self.conv1d(node[4]+node[3]+node[5]))
-        conv1.append(self.conv1d(node[5]+node[4]+node[6]))
-        conv1.append(self.conv1d(node[6]+node[5]+node[7]))
-        conv1.append(self.conv1d(node[7]+node[6]))
-        return conv1  
+        conv1.append(self.conv1d7(node[0]+node[1]))
+        conv1.append(self.conv1d7(node[0]+node[1]+node[2]))
+        conv1.append(self.conv1d7(node[2]+node[1]+node[3]))
+        conv1.append(self.conv1d7(node[3]+node[2]+node[4]))
+        conv1.append(self.conv1d7(node[4]+node[3]+node[5]))
+        conv1.append(self.conv1d7(node[5]+node[4]+node[6]))
+        conv1.append(self.conv1d7(node[6]+node[5]+node[7]))
+        conv1.append(self.conv1d7(node[7]+node[6]))
+        return conv1
+
+    def convo12(self,node):
+        conv1=[]
+        conv1.append(self.conv1d12(node[0]+node[1]))
+        conv1.append(self.conv1d12(node[0]+node[1]+node[2]))
+        conv1.append(self.conv1d12(node[2]+node[1]+node[3]))
+        conv1.append(self.conv1d12(node[3]+node[2]+node[4]))
+        conv1.append(self.conv1d12(node[4]+node[3]+node[5]))
+        conv1.append(self.conv1d12(node[5]+node[4]+node[6]))
+        conv1.append(self.conv1d12(node[6]+node[5]+node[7]))
+        conv1.append(self.conv1d12(node[7]+node[6]))
+        return conv1
+
 
     def reunion(self, matrix ):
         k = torch.unsqueeze(matrix[0],1)
@@ -73,20 +87,32 @@ class MultiHeadAttention(nn.Module):
 
 
         for i in range(0,self.h):
-            nodekey.append(torch.transpose(key[i],1,2))
+            nodekey.append(key[i])
 
         for i in range(0,self.h):
-            nodequery.append(torch.transpose(query[i],1,2))
+            nodequery.append(query[i])
 
         for i in range(0,self.h):
-            nodevalue.append(torch.transpose(value[i],1,2))
+            nodevalue.append(value[i])
+
+
 
         #print(np.shape(nodequery))
         #print(np.shape(nodequery[0]))
         #print('0000000000000000000000000000000000000000000000000000000000000')
-        nodekey   = self.convo(nodekey)
-        nodequery = self.convo(nodequery)
-        nodevalue = self.convo(nodevalue)
+        
+        if np.shape(nodekey[0])[1]==7:
+            nodekey   = self.convo7(nodekey)
+            nodevalue = self.convo7(nodevalue)
+        if np.shape(nodekey[0])[1]==12:
+            nodekey   = self.convo12(nodekey)
+            nodevalue = self.convo12(nodevalue)
+
+        if np.shape(nodequery[0])[1]==7:
+            nodequery   = self.convo7(nodequery)
+
+        if np.shape(nodequery[0])[1]==12:
+            nodequery = self.convo12(nodequery)
 
 
 
@@ -103,9 +129,13 @@ class MultiHeadAttention(nn.Module):
             splited.append(torch.split(torch.transpose(conv1[i],1,2),self.d_k,-1))
         '''
         
-        k = torch.transpose(self.reunion(nodekey),2,3)
-        q = torch.transpose(self.reunion(nodequery),2,3)
-        v = torch.transpose(self.reunion(nodevalue),2,3)
+        k = self.reunion(nodekey)
+        q = self.reunion(nodequery)
+        v = self.reunion(nodevalue)
+
+        #print(np.shape(k))
+        
+        #print(np.shape(q))
 
         #print(np.shape(k))
         #print(np.shape(q))
