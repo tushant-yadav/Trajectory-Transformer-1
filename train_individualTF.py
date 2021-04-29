@@ -77,7 +77,7 @@ def main():
     except:
         pass
 
-    log=SummaryWriter('logs/Ind_%s'%model_name)
+    log=SummaryWriter('/content/drive/MyDrive/DL/path/TF/Ind_%s'%model_name)
 
     log.add_scalar('eval/mad', 0, 0)
     log.add_scalar('eval/fad', 0, 0)
