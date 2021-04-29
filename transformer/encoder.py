@@ -20,6 +20,12 @@ class Encoder(nn.Module):
         """
         Pass the input (and mask) through each layer in turn.
         """
+        x_list = []
+    
         for layer in self.layers:
             x = layer(x, x_mask)
-        return self.norm(x)
+            x_list.append(x)
+        
+        for i in range(0,len(x_list)):
+            x_list[i] = layer(x_list[i], x_mask)
+        return x_list
